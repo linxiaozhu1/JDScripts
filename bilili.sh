@@ -1,1 +1,1 @@
-java -jar /ql/scripts/bilibili/BILIBILI-HELPER.jar /ql/scripts/bilibili/config.json
+java -jar /ql/scripts/BILIBILI-HELPER.jar /ql/config/bilibili.json

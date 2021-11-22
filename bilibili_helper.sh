@@ -47,7 +47,7 @@ if [ ! -f "/ql/scripts/linxiaozhu1_JDScripts/BILIBILI-HELPER.jar" ]; then
 	echo "没找到BILIBILI-HELPER.jar，开始下载.........."
 	download
 fi
-files=$(ls /ql/config/bilibili.json)
+files=$(ls /ql/config/*.json)
 for file_name in $files; do
 	if [[ $file_name != *auth* ]]; then
 		echo "配置文件路径:"$file_name

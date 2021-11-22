@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#new Env('BILIBILI-HELPER');
+#new Env('哔哩哔哩小助手');
 
 if ! [ -x "$(command -v java)" ]; then
 	echo "开始安装Java运行环境........."

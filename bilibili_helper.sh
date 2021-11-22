@@ -6,8 +6,8 @@ if ! [ -x "$(command -v java)" ]; then
 	apk update
 	apk add openjdk8
 fi
-if [ ! -d "/ql/scripts/linxiaozhu1_JDScripts/bilibili/" ]; then
-	mkdir /ql/scripts/linxiaozhu1_JDScripts/bilibili
+if [ ! -d "/ql/scripts/bilibili/" ]; then
+	mkdir /ql/scripts/bilibili
 fi
 cd bilibili
 if [ -f "/tmp/bili-helper.log" ]; then

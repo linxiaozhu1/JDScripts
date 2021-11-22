@@ -1,1 +1,1 @@
-java -jar /ql/scripts/linxiaozhu1_JDScripts/BILIBILI-HELPER-v2.1.0.jar /ql/scripts/linxiaozhu1_JDScripts/config.json
+java -jar /ql/config/BILIBILI-HELPER-v2.1.0.jar /ql/config/config.json

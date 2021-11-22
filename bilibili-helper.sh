@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-#new Env('BILIBILI-HELPER');
+#new Env('哔哩哔哩小助手');
 
 if ! [ -x "$(command -v java)" ]; then
 	echo "开始安装Java运行环境........."
 	apk update
 	apk add openjdk8
 fi
-if [ ! -d "/ql/scripts/bilibili/" ]; then
-	mkdir /ql/scripts/bilibili
+if [ ! -d "/ql/scripts/linxiaozhu1_JDScripts/bilibili/" ]; then
+	mkdir /ql/scripts/linxiaozhu1_JDScripts/bilibili
 fi
 cd bilibili
 if [ -f "/tmp/bili-helper.log" ]; then
@@ -27,9 +27,9 @@ download() {
 	echo "正在解压文件......."
 	unzip -o -d ./tmp/ BILIBILI-HELPER.zip
 	cp -f ./tmp/BILIBILI-HELPER*.jar BILIBILI-HELPER.jar
-	if [ ! -f "/ql/scripts/bilibili/config.json" ]; then
+	if [ ! -f "/ql/config/bilibili.json" ]; then
 		echo "配置文件不存在。"
-		cp -f ./tmp/config.json /ql/scripts/bilibili/config.json
+		cp -f ./tmp/config.json /ql/config/bilibili.json
 	fi
 	echo "清除缓存........."
 	rm -rf tmp
@@ -43,11 +43,11 @@ if version_lt $VERSION $latest_VERSION; then
 else
 	echo "已经是最新版本，不需要更新！！！"
 fi
-if [ ! -f "/ql/scripts/bilibili/BILIBILI-HELPER.jar" ]; then
+if [ ! -f "/ql/scripts/linxiaozhu1_JDScripts/BILIBILI-HELPER.jar" ]; then
 	echo "没找到BILIBILI-HELPER.jar，开始下载.........."
 	download
 fi
-files=$(ls /ql/scripts/bilibili/*.json)
+files=$(ls /ql/config/*.json)
 for file_name in $files; do
 	if [[ $file_name != *auth* ]]; then
 		echo "配置文件路径:"$file_name

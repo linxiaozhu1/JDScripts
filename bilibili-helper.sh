@@ -43,7 +43,7 @@ if version_lt $VERSION $latest_VERSION; then
 else
 	echo "已经是最新版本，不需要更新！！！"
 fi
-if [ ! -f "/ql/scripts/linxiaozhu1_JDScripts/BILIBILI-HELPER.jar" ]; then
+if [ ! -f "/ql/scripts/BILIBILI-HELPER.jar" ]; then
 	echo "没找到BILIBILI-HELPER.jar，开始下载.........."
 	download
 fi

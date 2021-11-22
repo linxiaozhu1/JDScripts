@@ -29,7 +29,7 @@ download() {
 	cp -f ./tmp/BILIBILI-HELPER*.jar BILIBILI-HELPER.jar
 	if [ ! -f "/ql/config/bilibili.json" ]; then
 		echo "配置文件不存在。"
-		cp -f ./tmp/config.json /ql/config/config.json
+		cp -f ./tmp/bilibili.json /ql/config/bilibili.json
 	fi
 	echo "清除缓存........."
 	rm -rf tmp

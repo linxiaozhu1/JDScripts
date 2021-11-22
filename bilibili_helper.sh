@@ -6,7 +6,7 @@ if ! [ -x "$(command -v java)" ]; then
 	apk update
 	apk add openjdk8
 fi
-if [ ! -d "/ql/scripts/bilibili/" ]; then
+if [ ! -d "/ql/config/bilibili/" ]; then
 	mkdir /ql/scripts/bilibili
 fi
 cd bilibili
@@ -27,9 +27,9 @@ download() {
 	echo "正在解压文件......."
 	unzip -o -d ./tmp/ BILIBILI-HELPER.zip
 	cp -f ./tmp/BILIBILI-HELPER*.jar BILIBILI-HELPER.jar
-	if [ ! -f "/ql/scripts/bilibili/config.json" ]; then
+	if [ ! -f "/ql/config/bilibili/config.json" ]; then
 		echo "配置文件不存在。"
-		cp -f ./tmp/config.json /ql/scripts/bilibili/config.json
+		cp -f ./tmp/config.json /ql/config/bilibili/config.json
 	fi
 	echo "清除缓存........."
 	rm -rf tmp
@@ -43,11 +43,11 @@ if version_lt $VERSION $latest_VERSION; then
 else
 	echo "已经是最新版本，不需要更新！！！"
 fi
-if [ ! -f "/ql/scripts/bilibili/BILIBILI-HELPER.jar" ]; then
+if [ ! -f "/ql/config/bilibili/BILIBILI-HELPER.jar" ]; then
 	echo "没找到BILIBILI-HELPER.jar，开始下载.........."
 	download
 fi
-files=$(ls /ql/scripts/bilibili/*.json)
+files=$(ls /ql/config/bilibili/*.json)
 for file_name in $files; do
 	if [[ $file_name != *auth* ]]; then
 		echo "配置文件路径:"$file_name

@@ -1,5 +1,5 @@
 """
-new Env('青龙全自动更新cookie');
+new Env('新版wskey转换');
 cron 15 8,21 * * *
 """
 

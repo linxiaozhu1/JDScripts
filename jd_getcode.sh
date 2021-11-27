@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-## Build 20211123-002
+## Build 20211125-001-test
 
 ## 导入通用变量与函数
 dir_shell=/ql/shell
@@ -17,7 +17,7 @@ repo5='shufflewzc_faker3'                          #预设的 shufflewzc 仓库
 repo6='Wenmoux_scripts_wen_chinnkarahoi'           #预设的 Wenmoux 仓库，用于读取口袋书店互助码。需提前拉取温某人的仓库或口袋书店脚本并完整运行。
 repo7='Aaron-lv_sync_jd_scripts'                   #预设的 Aaron-lv 仓库
 repo8='smiek2221_scripts'                          #预设的 smiek2221 仓库
-repo=$repo5                                        #默认调用 shufflewzc_faker3 仓库脚本日志
+repo=$repo5                                        #默认调用 shufflewzc_faker2 仓库脚本日志
 
 ## 调试模式开关，默认是0，表示关闭；设置为1，表示开启
 DEBUG="1"
@@ -744,8 +744,47 @@ kill_proc(){
 ps -ef|grep "$1"|grep -Ev "$2"|awk '{print $1}'|xargs kill -9
 }
 
+install_deps_scripts(){
+    GithubProxyUrl="https://ghproxy.com/"
+    
+    switch_status=(
+      on
+      on
+      on
+    )
+    
+    scripts_name=(
+      ql.js
+      sendNotify.js
+      JD_DailyBonus.js
+    )
+    
+    scripts_url=(
+      https://raw.githubusercontent.com/ccwav/QLScript2/main/ql.js
+      https://raw.githubusercontent.com/ccwav/QLScript2/main/sendNotify.js
+      https://raw.githubusercontent.com/NobyDa/Script/master/JD-DailyBonus/JD_DailyBonus.js
+    )
+    
+    test_connect(){
+        curl -I -m 2 -s -w "%{http_code}\n" -o /dev/null $1
+    }
+    
+    download_scripts(){
+        tmp_scripts_url=$1
+        [[ "$(test_connect $tmp_scripts_url)" -ne "200" ]] && tmp_scripts_url="$GithubProxyUrl$tmp_scripts_url"
+        curl -L -m 10 -s $tmp_scripts_url -o $dir_config/$2
+    }
+    
+    for ((i = 0; i < ${#scripts_url[*]}; i++)); do
+        [[ ${switch_status[i]} = "on" ]] && download_scripts ${scripts_url[i]} ${scripts_name[i]}
+        [[ -d $dir_dep && -f $dir_config/${scripts_name[i]} ]] && cp -rf $dir_config/${scripts_name[i]} $dir_dep
+        [[ -f $dir_config/${scripts_name[i]} ]] && find $dir_scripts -type f -name ${scripts_name[i]}|xargs -n 1 cp -rf $dir_config/${scripts_name[i]} && cp -rf $dir_config/${scripts_name[i]} $dir_scripts
+    done
+}
+
 ## 执行并写入日志
 kill_proc "code.sh" "grep|$$" >/dev/null 2>&1
+install_deps_scripts &
 [[ $FixDependType = "1" ]] && [[ "$ps_num" -le $proc_num ]] && install_dependencies_all >/dev/null 2>&1 &
 latest_log=$(ls -r $dir_code | head -1)
 latest_log_path="$dir_code/$latest_log"
@@ -758,8 +797,8 @@ update_help
 [[ -f /ql/repo/curtinlv_JD-Script/OpenCard/OpenCardConfig.ini ]] && sed -i "4c JD_COOKIE = '$(echo $JD_COOKIE | sed "s/&/ /g; s/\S*\(pt_key=\S\+;\)\S*\(pt_pin=\S\+;\)\S*/\1\2/g;" | perl -pe "s| |&|g")'" /ql/repo/curtinlv_JD-Script/OpenCard/OpenCardConfig.ini
 
 ## 魔改版 jdCookie.js 复制到 /ql/deps/。仅支持v2.10.8及以上版本的青龙
-[[ -d /ql/deps/ && -f /ql/config/jdCookie.js ]] && cp -rf /ql/config/jdCookie.js /ql/deps/
+[[ -d $dir_dep && -f $dir_config/jdCookie.js ]] && cp -rf $dir_config/jdCookie.js $dir_dep
 ## 魔改版 jdCookie.js 覆盖到 /ql/scripts/及子路径下的所有 jdCookie.js。支持v2.10.8 以下版本的青龙
-[[ -f /ql/config/jdCookie.js ]] && find /ql/scripts -type f -name jdCookie.js|xargs -n 1 cp -rf /ql/config/jdCookie.js
+[[ -f $dir_config/jdCookie.js ]] && find $dir_scripts -type f -name jdCookie.js|xargs -n 1 cp -rf $dir_config/jdCookie.js && cp -rf $dir_config/jdCookie.js $dir_scripts
 
 exit

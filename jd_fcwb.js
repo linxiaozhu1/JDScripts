@@ -95,7 +95,7 @@ function wb(round,rowIdx,colIdx) {
 
         "Cookie": cookie,
         "Origin": "https://api.m.jd.com",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
+        "User-Agent": " jdltapp;iPhone;3.7.6;;;M/5.0;hasUPPay/0;pushNoticeIsOpen/1;lang/zh_CN;hasOCPay/0;appBuild/1095;supportBestPay/0;jdSupportDarkMode/0;ef/1;ep/%7B%22ciphertype%22%3A5%2C%22cipher%22%3A%7B%22ud%22%3A%22DJY4CtVwCNDrY2SzCNK3Y2SyC2O4CQHtDzPuCtYnDzOnDwPsD2HtDm%3D%3D%22%2C%22sv%22%3A%22CJGkCm%3D%3D%22%2C%22iad%22%3A%22%22%7D%2C%22ts%22%3A1637764153%2C%22hdid%22%3A%22E3iX40Q%5C%2FvWK2aDObnfiV4WQ2pYAvWoTfZbKY6Yl8iU0%3D%22%2C%22version%22%3A%221.0.3%22%2C%22appname%22%3A%22com.jd.jdmobilelite%22%2C%22ridx%22%3A1%7D;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1;",
 
     }
   }
@@ -199,13 +199,13 @@ function wb(round,rowIdx,colIdx) {
  return new Promise((resolve) => {
  
   const nm= {
-    url: `${JD_API_HOST}/?functionId=happyDigHelp&body={"linkId":"pTTvJeSTrpthgk9ASBVGsw","inviter":"${a}","inviteCode":"${b}"}&t=1635561607124&appid=activities_platform&client=H5&clientVersion=1.0.0`,
+    url: `${JD_API_HOST}/?functionId=happyDigHelp&body={"linkId":"pTTvJeSTrpthgk9ASBVGsw","inviter":"${a}","inviteCode":"${b}"}&t=1638187760169&appid=activities_platform&client=H5&clientVersion=1.0.0&h5st=20211129200920170;4795836212136681;8dd95;tk02wba801c8418ngKIup5xyQZI2BeB0RWqdejdpUInQW4HchEwHi9KIwVFe6Qywar60fgdl7vPeI42Ih6gMfXTmvYOK;39ed331250a9fa343fef1e20fcfd19525ac8be8c6d5615f64c83effc94a4ccb4;3.0;1638187760170`,
    
     headers: {
 
         "Cookie": cookie,
-        "Origin": "https://api.m.jd.com",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
+        "Origin": "https://bnzf.jd.com",
+        "User-Agent": " jdltapp;iPhone;3.7.6;;;M/5.0;hasUPPay/0;pushNoticeIsOpen/1;lang/zh_CN;hasOCPay/0;appBuild/1095;supportBestPay/0;jdSupportDarkMode/0;ef/1;ep/%7B%22ciphertype%22%3A5%2C%22cipher%22%3A%7B%22ud%22%3A%22DJY4CtVwCNDrY2SzCNK3Y2SyC2O4CQHtDzPuCtYnDzOnDwPsD2HtDm%3D%3D%22%2C%22sv%22%3A%22CJGkCm%3D%3D%22%2C%22iad%22%3A%22%22%7D%2C%22ts%22%3A1637764153%2C%22hdid%22%3A%22E3iX40Q%5C%2FvWK2aDObnfiV4WQ2pYAvWoTfZbKY6Yl8iU0%3D%22%2C%22version%22%3A%221.0.3%22%2C%22appname%22%3A%22com.jd.jdmobilelite%22%2C%22ridx%22%3A1%7D;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1;",
 
     }
   }  
@@ -314,13 +314,13 @@ function jsonParse(str) {
   
   function taskurl(functionId,body) {
   return {
-    url: `${JD_API_HOST}/?functionId=${functionId}&body=${escape(JSON.stringify(body))}&t=1635561607124&appid=activities_platform&client=H5&clientVersion=1.0.0`,
+    url: `${JD_API_HOST}/?functionId=${functionId}&body=${escape(JSON.stringify(body))}&t=1635561607124&appid=activities_platform&client=H5&clientVersion=1.0.0&h5st=20211124221847644%3B8025367011221824%3B8dd95%3Btk02w8ec01bf218ne2CObx0K8h1AFYihunY6rRa2CmHAIi8PKpaBSWhJVgbXMf2osSv0eNDNiKJqaeuF65j7hKkccw2g%3B295347bf1cb60528da749626e0ee7c74c1634f7f5766a3eef505697e20bf74b4%3B3.0%3B1637763527644`,
    
     headers: {
 
         "Cookie": cookie,
-        "Origin": "https://api.m.jd.com",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
+        "Origin": "https://bnzf.jd.com",
+        "User-Agent": " jdltapp;iPhone;3.7.6;;;M/5.0;hasUPPay/0;pushNoticeIsOpen/1;lang/zh_CN;hasOCPay/0;appBuild/1095;supportBestPay/0;jdSupportDarkMode/0;ef/1;ep/%7B%22ciphertype%22%3A5%2C%22cipher%22%3A%7B%22ud%22%3A%22DJY4CtVwCNDrY2SzCNK3Y2SyC2O4CQHtDzPuCtYnDzOnDwPsD2HtDm%3D%3D%22%2C%22sv%22%3A%22CJGkCm%3D%3D%22%2C%22iad%22%3A%22%22%7D%2C%22ts%22%3A1637764153%2C%22hdid%22%3A%22E3iX40Q%5C%2FvWK2aDObnfiV4WQ2pYAvWoTfZbKY6Yl8iU0%3D%22%2C%22version%22%3A%221.0.3%22%2C%22appname%22%3A%22com.jd.jdmobilelite%22%2C%22ridx%22%3A1%7D;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1;",
 
     }
   }

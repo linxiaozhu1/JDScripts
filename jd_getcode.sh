@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-## Build 20211201-002-test
+## Build 20211202-001-test
 
 ## 导入通用变量与函数
 dir_shell=/ql/shell
@@ -13,10 +13,10 @@ repo1='panghu999_jd_scripts'                       #预设的 panghu999 仓库
 repo2='JDHelloWorld_jd_scripts'                    #预设的 JDHelloWorld 仓库
 repo3='he1pu_JDHelp'                               #预设的 he1pu 仓库
 repo4='shufflewzc_faker2'                          #预设的 shufflewzc 仓库
-repo4='shufflewzc_faker3'                          #预设的 shufflewzc 仓库
-repo5='Wenmoux_scripts_wen_chinnkarahoi'           #预设的 Wenmoux 仓库，用于读取口袋书店互助码。需提前拉取温某人的仓库或口袋书店脚本并完整运行。
-repo6='Aaron-lv_sync_jd_scripts'                   #预设的 Aaron-lv 仓库
-repo7='smiek2221_scripts'                          #预设的 smiek2221 仓库
+repo5='shufflewzc_faker3'                          #预设的 shufflewzc 仓库
+repo6='Wenmoux_scripts_wen_chinnkarahoi'           #预设的 Wenmoux 仓库，用于读取口袋书店互助码。需提前拉取温某人的仓库或口袋书店脚本并完整运行。
+repo7='Aaron-lv_sync_jd_scripts'                   #预设的 Aaron-lv 仓库
+repo8='smiek2221_scripts'                          #预设的 smiek2221 仓库
 repo=$repo5                                        #默认调用 shufflewzc_faker2 仓库脚本日志
 
 ## 调试模式开关，默认是0，表示关闭；设置为1，表示开启
@@ -784,7 +784,7 @@ install_deps_scripts(){
 
 ## 执行并写入日志
 kill_proc "code.sh" "grep|$$" >/dev/null 2>&1
-install_deps_scripts &
+#install_deps_scripts &
 [[ $FixDependType = "1" ]] && [[ "$ps_num" -le $proc_num ]] && install_dependencies_all >/dev/null 2>&1 &
 latest_log=$(ls -r $dir_code | head -1)
 latest_log_path="$dir_code/$latest_log"

@@ -1,47 +1,49 @@
 #!/usr/bin/env bash
 
-## Build 20211221-002-fix-test
+## Build 20211224-001-test
 
 ## 导入通用变量与函数
 dir_shell=/ql/shell
 . $dir_shell/share.sh
 . $dir_shell/api.sh
 
+# 定义 json 数据查询工具
 def_envs_tool(){
     for i in $@; do
         curl -s --noproxy "*" "http://0.0.0.0:5600/api/envs?searchValue=$i" -H "Authorization: Bearer $token"
     done
 }
 
-def_JD_COOKIE_json(){
-    def_envs_tool JD_COOKIE | grep -Eo "\{\"value[^\}]+[^\}]+\}" | jq -r .$1
+def_json_total(){
+    def_envs_tool $1 | grep -Eo "\{\"value[^\}]+[^\}]+\}" | jq -r .$2
 }
 
-def_JD_WSCK_json(){
-    def_envs_tool JD_WSCK | grep -Eo "\{\"value[^\}]+[^\}]+\}" | grep $1 | jq -r .$2
+def_json(){
+    def_envs_tool $1 | grep -Eo "\{\"value[^\}]+[^\}]+\}" | grep "$3" | jq -r .$2
 }
 
-gen_basic_list(){
+def_json_value(){
+    cat "$1" | perl -pe "{s|\n||g; s|\},|\}\n|g}" | grep -Eo "\{[^\}]+}" | grep -w "$3" | jq -r .$2
+}
+
+## 生成pt_pin清单
+gen_pt_pin_array() {
     ## 生成 json 值清单
     gen_basic_value(){
         for i in $@; do
             if [[ $i = timestamp ]]; then
-                eval $i="($(def_JD_COOKIE_json $i | awk '{print $3,$2,$4,$5}' | perl -pe "{s| |-|g}"))"
-            else 
-                eval $i='($(def_JD_COOKIE_json $i | perl -pe "{s| ||g}"))'
+                eval $i="($(def_json_total JD_COOKIE $i | awk '{print $3,$2,$4,$5}' | perl -pe "{s| |-|g}"))"
+            else
+                eval $i='($(def_json_total JD_COOKIE $i | perl -pe "{s| ||g}"))'
             fi
         done
     }
 
-    value=()
-    _id=()
-    status=()
-    timestamp=()
-    remarks=()
-    wskey_value=()
-    wskey_id=()
-    wskey_remarks=()
     gen_basic_value value _id timestamp
+    ori_sub=(${!value[@]})
+    ori_sn=($(def_json JD_COOKIE value | awk '{print NR}'))
+    pin=($(def_json_total JD_COOKIE value | perl -pe "{s|.*pt_pin=([^; ]+)(?=;?).*|\1|}"))
+    pt_pin=($(def_json_total JD_COOKIE value | perl -pe "{s|.*pt_pin=([^; ]+)(?=;?).*|\1|}" | awk 'BEGIN{for(i=0;i<10;i++)hex[i]=i;hex["A"]=hex["a"]=10;hex["B"]=hex["b"]=11;hex["C"]=hex["c"]=12;hex["D"]=hex["d"]=13;hex["E"]=hex["e"]=14;hex["F"]=hex["f"]=15;}{gsub(/\+/," ");i=$0;while(match(i,/%../)){;if(RSTART>1);printf"%s",substr(i,1,RSTART-1);printf"%c",hex[substr(i,RSTART+1,1)]*16+hex[substr(i,RSTART+2,1)];i=substr(i,RSTART+RLENGTH);}print i;}'))
 }
 
 #青龙启用/禁用环境变量API
@@ -61,7 +63,7 @@ ql_process_env_api() {
             -H "Content-Type: application/json;charset=UTF-8" \
             --data-raw "[\"$id\"]"
     )
-    
+
     code=$(echo $api | jq -r .code)
     message=$(echo $api | jq -r .message)
     if [[ $code == 200 ]]; then
@@ -77,19 +79,6 @@ ql_process_env_api() {
             echo -e "已禁用失败(${message})"
         fi
     fi
-}
-
-## 生成pt_pin清单
-gen_pt_pin_array() {
-    local i j ori_pt_pin_temp
-    for i in "${!value[@]}"; do
-        ori_sn=$((i + 1))
-        ori_pt_pin_temp=$(echo ${value[i]} | perl -pe "{s|.*pt_pin=([^; ]+)(?=;?).*|\1|; s|%|\\\x|g}")
-        [[ ! ${remarks[i]} ]] && remarks_name[i]="未备注" || remarks_name[i]="${remarks[i]}"
-        [[  ${status[i]} = 0 ]] && current_status[i]="已启用" || current_status[i]="已禁用"
-        [[ $ori_pt_pin_temp == *\\x* ]] && ori_pt_pin[i]=$(printf $ori_pt_pin_temp) || ori_pt_pin[i]=$ori_pt_pin_temp
-        ori_uesr_info[i]="【$ori_sn】启用状态：${current_status[i]} ${ori_pt_pin[i]}; 备注：${remarks_name[i]}"
-    done
 }
 
 ## 打印账号信息
@@ -109,22 +98,13 @@ check_jd_ck(){
 
 # 批量检查 Cookie 有效性
 verify_ck(){
-    for ((x = 1; x <=16; x++)); do eval tmp$x=""; done 
+    for ((x = 1; x <=18; x++)); do eval tmp$x=""; done
     for i in ${!value[@]}; do
-        ori_sn[i]=$((i + 1))
-        ori_pin[i]=$(eval echo "\${value[$i]}" | perl -pe "{s|.*pt_pin=([^; ]+)(?=;?).*|\1|}")
-        #echo ${ori_pin[i]}
-        ori_pt_pin_temp[i]=$(eval echo "\${value[$i]}" | perl -pe "{s|.*pt_pin=([^; ]+)(?=;?).*|\1|; s|%|\\\x|g}")
-        [[ ${ori_pt_pin_temp[i]} == *\\x* ]] && ori_pt_pin[i]=$(printf ${ori_pt_pin_temp[i]}) || ori_pt_pin[i]=${ori_pt_pin_temp[i]}
-        remarks[i]="$(def_envs_tool JD_COOKIE | grep -Eo "\{\"value[^\}]+[^\}]+\}" | grep "pin=${ori_pin[i]};" | jq -r .remarks)"
-        [[ ${remarks[i]} ]] && remarks_name[i]="(${remarks[i]})" || remarks_name[i]="(未备注)"
-        status[i]="$(def_envs_tool JD_COOKIE | grep -Eo "\{\"value[^\}]+[^\}]+\}" | grep "pin=${ori_pin[i]};" | jq -r .status)"
+        remarks[$1]="$(def_json JD_COOKIE remarks "pin=${pin[$1]};" | head -1)"
+        [[ ${remarks[$1]} ]] && remarks_name[$1]="(${remarks[$1]})" || remarks_name[$1]="(未备注)"
+        [[ "$NOTIFY_SHOWNAMETYPE" ]] && full_name[$1]="【${ori_sn[$1]}】${pt_pin[$1]}" || full_name[$1]="【${ori_sn[$1]}】${pt_pin[$1]}${remarks_name[$1]}"
+        status[i]="$(def_json JD_COOKIE status "pin=${pin[i]};" | head -1)"
         [[ ${status[i]} = 0 ]] && current_status[i]="已启用" || current_status[i]="已禁用"
-        if [[ "$NOTIFY_SHOWNAMETYPE" ]]; then
-            ori_uesr[i]="【${ori_sn[i]}】${ori_pt_pin[i]}"
-        else
-            ori_uesr[i]="【${ori_sn[i]}】${ori_pt_pin[i]}${remarks_name[i]}"
-        fi
 
         # JD_COOKIE 有效性检查
         local test_connect="$(curl -I -s --connect-timeout 20 --retry 3 --noproxy "*" https://bean.m.jd.com/bean/signIndex.action -w %{http_code} | tail -n1)"
@@ -137,12 +117,12 @@ verify_ck(){
                     ck_status_chinese[i]="正常"
                 else
                     ck_status_chinese[i]="正常"
-                    tmp1="${ori_pt_pin[i]} "
+                    tmp1="${pt_pin[i]} "
                     tmp2="$tmp2$tmp1"
                 fi
-                tmp3="${ori_uesr[i]}\n"
+                tmp3="${full_name[i]}\n"
                 tmp4="$tmp4$tmp3"
-                tmp5="${ori_pt_pin[i]} "
+                tmp5="${pt_pin[i]} "
                 tmp6="$tmp6$tmp5"
             elif [[ $? = 1 ]]; then
                 ck_status[i]="1"
@@ -150,15 +130,15 @@ verify_ck(){
                     ck_status_chinese[i]="失效"
                 else
                     ck_status_chinese[i]="失效"
-                    tmp7="${ori_pt_pin[i]}\n"
+                    tmp7="${pt_pin[i]}\n"
                     tmp8="$tmp8$tmp7"
                 fi
-                tmp9="${ori_uesr[i]}\n"
+                tmp9="${full_name[i]}\n"
                 tmp10="$tmp10$tmp9"
-                tmp11="${ori_pt_pin[i]} "
+                tmp11="${pt_pin[i]} "
                 tmp12="$tmp12$tmp11"
             fi
-	    
+	
             if [[ $tmp2 ]] && [[ $NOTIFY_VALID_CK = 1 ]]; then
                 tmp_content1="其中本次启用账号：$tmp2\n"
             elif [[ $tmp2 ]]; then
@@ -172,20 +152,20 @@ verify_ck(){
             else
                 temp_valid_ck="$tmp_content4$tmp_content3$tmp_content1"
             fi
-            echo -n "【${ori_sn[i]}】${ori_pt_pin[i]}${remarks_name[i]} ${ck_status_chinese[i]}"
+            echo -n "【${ori_sn[i]}】${pt_pin[i]}${remarks_name[i]} ${ck_status_chinese[i]}"
             [[ ${ck_status[i]} != ${status[i]} ]] && echo -e "并$(ql_process_env_api ${_id[i]} ${ck_status[i]})" || echo -e ""
         else
-            echo -e "# API 连接失败，【${ori_sn[i]}】${ori_pt_pin[i]}${remarks_name[i]} 跳过检测。"
+            echo -e "# 【${ori_sn[i]}】${pt_pin[i]}${remarks_name[i]} 因 API 连接失败跳过检测。"
         fi
 
         # JD_WSCK 录入情况检查
         if [[ $NOTIFY_WSKEY_NO_EXIST = 1 || $NOTIFY_WSKEY_NO_EXIST = 2 ]]; then
-            wskey_value[i]="$(def_JD_WSCK_json "pin=${ori_pin[i]};" value | head -1)"
-            wskey_id[i]="$(def_JD_WSCK_json "pin=${ori_pin[i]};" _id | head -1)"
-            wskey_remarks[i]="$(def_JD_WSCK_json "pin=${ori_pin[i]};" remarks | head -1)"
-            if [[ ! ${wskey_value[i]} ]]; then 
-                echo -e "【${ori_sn[i]}】${ori_pt_pin[i]}${remarks_name[i]} 未录入JD_WSCK"
-                tmp13="${ori_uesr[i]}\n"
+            wskey_value[i]="$(def_json JD_WSCK value "pin=${pin[i]};" | head -1)"
+            wskey_id[i]="$(def_json JD_WSCK _id "pin=${pin[i]};" | head -1)"
+            wskey_remarks[i]="$(def_json JD_WSCK remarks "pin=${pin[i]};" | head -1)"
+            if [[ ! ${wskey_value[i]} ]]; then
+                echo -e "【${ori_sn[i]}】${pt_pin[i]}${remarks_name[i]} 未录入JD_WSCK"
+                tmp13="${full_name[i]}\n"
                 tmp14="$tmp14$tmp13"
             fi
             [[ $NOTIFY_WSKEY_NO_EXIST = 1 ]] && temp_no_wsck="未录入 JD_WSCK 的账号：\n$tmp14\n"
@@ -206,11 +186,20 @@ verify_ck(){
             elif [[ $remain_validity_period -ge 1 ]]; then
                 valid_time="$remain_validity_period秒"
             fi
-            echo -e "【${ori_sn[i]}】${ori_pt_pin[i]}${remarks_name[i]} 剩余有效期$valid_time"
-            tmp15="${ori_uesr[i]} 剩余有效期$valid_time\n"
+            echo -e "【${ori_sn[i]}】${pt_pin[i]}${remarks_name[i]} 剩余有效期$valid_time"
+            tmp15="${full_name[i]} 剩余有效期$valid_time\n"
             tmp16="$tmp16$tmp15"
             [[ $NOTIFY_VALID_TIME = 1 ]] && temp_valid_time="\n预测账号有效期：\n$tmp16\n"
-        fi            
+        fi
+
+        # 生成 CK_WxPusherUid.json 模板
+        if [[ $CK_WxPusherUid = 1 ]]; then
+            [[ -d $dir_scripts/ccwav_QLScript2 ]] && CK_WxPusherUid_dir="$dir_scripts/ccwav_QLScript2" || CK_WxPusherUid_dir="$dir_scripts"
+            [[ -f $CK_WxPusherUid_dir/CK_WxPusherUid.json ]] && Uid[i]="$(def_json_value "$CK_WxPusherUid_dir/CK_WxPusherUid.json" Uid "${pt_pin[i]}")" || Uid[i]=""
+            tmp17=" {\n\t\"pin\": \"${pin[i]}\",\n\t\"备注\": \"${remarks[i]}\",\n\t\"pt_pin\": \"${pt_pin[i]}\",\n\t\"Uid\": \"${Uid[i]}\"\n }"
+            tmp18="$tmp18,\n$tmp17"
+            [[ $CK_WxPusherUid = 1 || $CK_WxPusherUid = 2 ]] && temp_CK_WxPusherUid="[\n$(echo $tmp18 | sed 's/^,\\n//')\n]"
+        fi
     done
     temp_expired_ck="$(echo $tmp12 | perl -pe '{s| $||g}')"
     echo ""
@@ -229,12 +218,12 @@ sort_notify_content(){
 
     [[ $dir_scripts/CK_Cache ]] && . $dir_scripts/CK_Cache
     for i in $@; do
-        if [[ "$(eval echo \$$i)" == "$(eval echo \$"$i"_last)" ]]; then
-            eval export "$i"_last="\$$i"
+        if [[ "$(eval echo \$$i)" == "$(eval echo \$${i}_last)" ]]; then
+            eval export ${i}_last="\$$i"
             eval "$i"=""
             [[ $i = temp_expired_ck ]] && echo "# 账号有效性检测结果与上次内容一致，本次不推送。" && temp_valid_ck=""
         elif [[ "$(eval echo \$$i)" != "$(eval echo \$"$i"_last)" ]]; then
-            eval export "$i"_last="\$$i"
+            eval export ${i}_last="\$$i"
         fi
     done
     export_cache CK_Cache "$i"_last
@@ -256,7 +245,7 @@ define_program() {
     fi
 }
 
-gen_basic_list
+gen_pt_pin_array
 echo -e ""
 echo -n "# 开始检查账号有效性"
 [[ $NOTIFY_VALID_TIME = 1 || $NOTIFY_VALID_TIME = 2 ]] && echo -e "，预测账号有效期谨供参考 ..." || echo -e " ..."
@@ -280,10 +269,12 @@ if [[ $WSKEY_TO_CK = 1 ]]; then
 fi
 
 [[ $NOTIFY_SKIP_SAME_CONTENT = 1  ]] && sort_notify_content temp_expired_ck
-notify_content="$temp_valid_ck$temp_valid_time$temp_no_wsck"
+notify_content="$temp_valid_ck$temp_no_wsck$temp_valid_time"
 
 if [[ $notify_content ]]; then
     echo -e "$notify_content"
+    [[ $CK_WxPusherUid = 1 ]] && echo -e $temp_CK_WxPusherUid > $CK_WxPusherUid_dir/CK_WxPusherUid.json
+    [[ $CK_WxPusherUid = 2 ]] && echo -e $temp_CK_WxPusherUid > $CK_WxPusherUid_dir/CK_WxPusherUid_Sample.json
     echo -e "# 推送通知..."
     notify "Cookie 状态通知" "$notify_content" >/dev/null 2>&1
 fi

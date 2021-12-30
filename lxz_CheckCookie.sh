@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-## Build 20211229-001-fix-test
+## Build 20211230-001-fix-test
 
 ## 导入通用变量与函数
 dir_shell=/ql/shell
@@ -127,7 +127,7 @@ WxPusher_notify_api() {
         curl -s --noproxy "*" "$url" \
             -X 'POST' \
             -H "Content-Type: application/json" \
-            --data-raw "{\"appToken\":\"$appToken\",\"content\":\"$content\",\"summary\":\"$summary\",\"contentType\":\"2\",\"uids\":[\"$uids\"]}"
+            --data-raw "{\"appToken\":\"$appToken\",\"content\":\"$content\",\"summary\":\"$summary\",\"contentType\":\"2\",\"uids\":[$uids]}"
     )
 }
 
@@ -150,6 +150,7 @@ check_jd_ck(){
 verify_ck(){
     gen_pt_pin_array
     for ((x = 1; x <=22; x++)); do eval tmp$x=""; done
+    for ((y = 1; y <=2; y++)); do eval tmp_Uid_$y=""; done
     for i in ${!value[@]}; do
         remarks[i]="$(def_json JD_COOKIE remarks "pin=${pin[i]};" | head -1)"
         if [[ ${remarks[i]} == *@@* ]]; then
@@ -159,10 +160,11 @@ verify_ck(){
         else
             remarks_name[i]="(未备注)"
         fi
-        [[ "$NOTIFY_SHOWNAMETYPE" ]] && full_name[i]="【${ori_sn[i]}】${pt_pin[i]}" || full_name[i]="【${ori_sn[i]}】${pt_pin[i]}${remarks_name[i]}"
+        ori_full_name[i]="【${ori_sn[i]}】${pt_pin[i]}${remarks_name[i]}"
+        [[ "$NOTIFY_SHOWNAMETYPE" ]] && full_name[i]="【${ori_sn[i]}】${pt_pin[i]}" || full_name[i]="${ori_full_name[i]}"
         status[i]="$(def_json JD_COOKIE status "pin=${pin[i]};" | head -1)"
         [[ ${status[i]} = 0 ]] && current_status[i]="已启用" || current_status[i]="已禁用"
-        
+
         # wskey 相关值
         wskey_value[i]="$(def_json JD_WSCK value "pin=${pin[i]};" | head -1)"
         wskey_id[i]="$(def_json JD_WSCK _id "pin=${pin[i]};" | head -1)"
@@ -242,6 +244,7 @@ verify_ck(){
                 echo -e "${full_name[i]} 未录入JD_WSCK(wskey)"
                 tmp13="${full_name[i]}\n"
                 tmp14="$tmp14$tmp13"
+                none_wskey_pin[i]="${pin[i]}"
             fi
             [[ $NOTIFY_WSKEY_NO_EXIST = 1 ]] && [[ $tmp14 ]] && temp_no_wsck="\n未录入 JD_WSCK(wskey) 的账号：\n$tmp14\n" || temp_no_wsck=""
         fi
@@ -333,15 +336,12 @@ notify_one_to_one(){
     if [[ $(def_sub JD_COOKIE status 1) ]] && [[ $(echo $WP_APP_TOKEN_ONE|grep -Eo 'AT_(\w{32})') ]]; then
         for i in $(def_sub JD_COOKIE status 1); do
             if [ ${Uid[i]} ]; then
+                [[ $MainWP_UID ]] && uids="$(echo $MainWP_UID,${Uid[i]} | perl -pe '{s|^|\"|; s|,|\",\"|g; s|$|\"|}')" || uids="$(echo ${Uid[i]} | perl -pe '{s|^|\"|; s|$|\"|}')"
+                [[ ${none_wskey_pin[i]} ]] && content_1="${ori_full_name[i]} 账号失效<br>${ori_full_name[i]} 未录入 JD_WSCK(wskey)" || content_1="${ori_full_name[i]} 账号失效"
                 if [[ $NOTIFY_SKIP_SAME_CONTENT = 1 ]]; then
-                    [[ $dir_scripts/CK_Cache ]] && . $dir_scripts/CK_Cache
-                    if [[ ! $temp_expired_ck =~ ${pin[i]} ]]; then
-                        [[ ${wskey_value[i]} && ${wskey_value[i]} != null ]] && content_1="${full_name[i]} 账号失效" || content_1="${full_name[i]} 账号失效\n${full_name[i]} 未录入 JD_WSCK(wskey)"
-                        WxPusher_notify_api $WP_APP_TOKEN_ONE "$content_1" "Cookie 失效通知" "${Uid[i]}"
-                    fi
+                    [[ $dir_scripts/CK_Cache ]] && . $dir_scripts/CK_Cache && [[ ! $temp_expired_ck_last =~ ${pin[i]} ]] && WxPusher_notify_api $WP_APP_TOKEN_ONE "$content_1" "Cookie 失效通知" "$uids"
                 else
-                    [[ ${wskey_value[i]} && ${wskey_value[i]} != null ]] && content_1="${full_name[i]} 账号失效" || content_1="${full_name[i]} 账号失效\n${full_name[i]} 未录入 JD_WSCK(wskey)"
-                    WxPusher_notify_api $WP_APP_TOKEN_ONE "$content_1" "Cookie 失效通知" "${Uid[i]}"
+                    WxPusher_notify_api $WP_APP_TOKEN_ONE "$content_1" "Cookie 失效通知" "$uids"
                 fi
             fi
         done
@@ -385,6 +385,7 @@ if [[ $WSKEY_TO_CK = 1 ]]; then
     fi
 fi
 
+notify_one_to_one
 sort_notify_content temp_expired_ck
 notify_content="$temp_valid_ck$temp_no_wsck$temp_No_UID_1$temp_No_UID_2$temp_valid_time"
 
@@ -395,7 +396,6 @@ if [[ $notify_content ]]; then
     notify "Cookie 状态通知" "$notify_content" >/dev/null 2>&1
 fi
 
-notify_one_to_one
 
 echo -e "# 执行完成。"
 

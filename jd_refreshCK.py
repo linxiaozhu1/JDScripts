@@ -1,6 +1,6 @@
 """
 new Env('新版wskey转换');
-cron 15 8,21 * * *
+cron 0 25,55 * * *
 """
 
 import requests

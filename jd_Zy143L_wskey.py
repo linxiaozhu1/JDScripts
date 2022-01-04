@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*
 '''
 new Env('新版wskey转换');
-cron 0 25,55 * * *
+cron 25,55 * * * *
 '''
 
 import socket
